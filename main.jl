@@ -76,4 +76,26 @@ function task9(robot)
         move!(robot, Ost)
     end
 end
-task9(robot)
+function checkBorders(robot)
+    for side in [Ost, Sud, West, Nord]
+        if isborder(robot, side)
+            return true
+        end
+    end
+    return false
+end
+function PaintPerimeter(robot, side)
+    while true
+        if checkBorders(robot)
+            putmarker!(robot)
+        end
+        move!(robot, side)
+        if isborder(robot, side)
+            break
+        end
+    end
+end
+function task5(robot)
+    
+end
+task5(robot)
