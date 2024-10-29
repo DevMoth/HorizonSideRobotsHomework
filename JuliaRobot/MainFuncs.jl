@@ -43,7 +43,7 @@ function moveUntilWall(robot, side, lay = false)#двигается до сте�
     end
     return counter
 end
-function moveUntil(stop_condition::Function, robot, side)
+function moveUntil(stop_condition::Function, robot, side)#двигается до того, как stop_condition возвращает true
     n=0
     while !stop_condition()
         move!(robot, side)
@@ -52,7 +52,7 @@ function moveUntil(stop_condition::Function, robot, side)
     return n
 end
 
-function MoveToCorner(robot, corner = (Nord, West))#передвигает робота в угол side1,side2; возвращает список шагов чтобы вернуться домой
+function MoveToCorner(robot, corner = (Nord, West))#передвигает робота в угол; возвращает список шагов чтобы вернуться домой
     moves = []
     while true
         for side in corner
@@ -75,12 +75,12 @@ function ExecutePath(robot, path; reversePath = false)#выполняет спи
         end
     end
 end
-function ReturnHome(robot, moves, corner = (Nord, West))#возвращается домой из любой клетки поля(moves- список шагов до дома; side1,side2- стороны угла с которого робот начал)
+function ReturnHome(robot, moves, corner = (Nord, West))#возвращается домой из любой клетки поля(moves- список шагов из дома в угол)
     MoveToCorner(robot, corner)
     ExecutePath(robot, moves, reversePath = true)
 end
 
-function snake!(stop_condition::Function, robot, sides::NTuple{2,HorizonSide})
+function snake!(stop_condition::Function, robot, sides::NTuple{2,HorizonSide})#двигается змейкой по заданным сторонам и останавливается, когда stop_condition возвращает true
     s=sides[1]
     while !stop_condition()
         moveUntil(()->stop_condition() || isborder(robot, s), robot,s)
@@ -91,7 +91,7 @@ function snake!(stop_condition::Function, robot, sides::NTuple{2,HorizonSide})
         move!(robot, sides[2])
     end
 end
-function spiral!(stop_condition::Function, robot)
+function spiral!(stop_condition::Function, robot)#идет по спирали пока stop_condition не вернет true
     steps = 1
     side = Nord
     while true
@@ -109,7 +109,7 @@ function spiral!(stop_condition::Function, robot)
     end
 end
 
-function shuttle!(stop_condition::Function, robot, side)
+function shuttle!(stop_condition::Function, robot, side)#шатается влево-вправо, пока stop_condition не вернет true
     metWall = false
     steps = 0
     addStep = false
@@ -136,7 +136,7 @@ function shuttle!(stop_condition::Function, robot, side)
         end
     end
 end
-function navAroundWall(robot, side)
+function navAroundWall(robot, side)#идет вперед на 1 шаг, даже если перед ним стена(обходит стену при помощи shuttle!); возвращает путь, который был пройден
     if !isborder(robot, side)
         move!(robot, side)
         return (side, 1)
@@ -158,7 +158,7 @@ function navAroundWall(robot, side)
     end
     return path
 end
-function moveStepsWithPath(robot, side, steps = 1; moveType = ()->navAroundWall(robot, side), breakFunc = ()->false)
+function moveStepsWithPath(robot, side, steps = 1; moveType = ()->navAroundWall(robot, side), breakFunc = ()->false)#идет вперед на n шагов, даже если перед ним стена; возвращает (успешно ли обошел, пройденный путь)
     path = []
     curSteps = 0
     for _ in 1:steps
@@ -184,7 +184,7 @@ function moveStepsWithPath(robot, side, steps = 1; moveType = ()->navAroundWall(
     return (true, path)
 end
 
-function isOuterWall(robot, side)
+function isOuterWall(robot, side)#проверяет внешняя ли это стена
     if !isborder(robot, side)
         #println("no border")
         return false
@@ -201,7 +201,7 @@ function isOuterWall(robot, side)
     #println("outer wall")
     return true
 end
-function snakeWithNav(robot, sides)
+function snakeWithNav(robot, sides)# проходит все поле, но может обходить внутренние стены
     side = sides[1]
     height = moveUntilWall(robot, side)
     side = rotate(side, 2)
@@ -215,7 +215,7 @@ function snakeWithNav(robot, sides)
         side = rotate(side, 2)
     end
 end
-function spiralWithNav(stop_condition::Function, robot)
+function spiralWithNav(stop_condition::Function, robot)#spiral! но с обходом стен
     steps = 1
     side = Nord
     while true

@@ -1,32 +1,22 @@
 using HorizonSideRobots
-mutable struct SmartRobot
-    robot::Robot
-    x::Int
+mutable struct SmartRobot #обертка робота
+    robot::Robot#сам робот
+    x::Int #координаты робота
     y::Int
-    allowPaint::Bool
-    update::Function
-    storage::Dict
+    allowPaint::Bool #разрешение красить(если == false, то робот не сможет ставить маркеры)
+    update::Function #функция, которая выполняется роботом каждый шаг
 end
-function blank()
-    return 0
+function SmartRobot(robot::Robot) #конструктор робота, ставит стандартные значения всему кроме самого робота( ()->0 это пустая функция )
+    return SmartRobot(robot, 0, 0, true, ()->0)
 end
-function SmartRobot(robot::Robot) 
-    return SmartRobot(robot, 0, 0, true, ()->0, Dict{String, Any}())
-end
-function SetUpdateFunc(robot, func = ()->0)
+function SetUpdateFunc(robot::SmartRobot, func = ()->0)# устанавливает функцию обновления робота, если не ставить новую функция, то будет поставлена пустая функция
     robot.update = func
 end
-function GetFromStorage(robot, name)
-    return robot.storage[name]
-end
-function SetStorageItem(robot, name, value)
-    robot.storage[name] = value 
-end
-function resetCoords(robot::SmartRobot)
+function resetCoords(robot::SmartRobot)#ставит координаты на 0 0
     robot.x = 0
     robot.y = 0
 end
-function getHomeCoords(moves)
+function getHomeCoords(moves)#считает координаты начальной клетки из пути до угла
     homeX = 0
     homeY = 0
     for move in moves 
@@ -42,7 +32,7 @@ function getHomeCoords(moves)
     end
     return (homeX, homeY)
 end
-function HorizonSideRobots.move!(robot::SmartRobot, side)
+function HorizonSideRobots.move!(robot::SmartRobot, side)#обертка move!, обновляет координаты и выполняет функцию обновления
     if side == Nord
         robot.y -= 1
     elseif side == Sud
@@ -55,7 +45,7 @@ function HorizonSideRobots.move!(robot::SmartRobot, side)
     move!(robot.robot, side)
     robot.update()
 end
-function HorizonSideRobots.putmarker!(robot::SmartRobot)
+function HorizonSideRobots.putmarker!(robot::SmartRobot)#обертка putmarker!, ставит маркер, только если allowPaint == true
     if robot.allowPaint
         putmarker!(robot.robot)
     end
@@ -65,13 +55,4 @@ function HorizonSideRobots.isborder(robot::SmartRobot, side)
 end
 function HorizonSideRobots.ismarker(robot::SmartRobot)
     return ismarker(robot.robot)
-end
-function HorizonSideRobots.sitedit!(robot::SmartRobot, sitfile)
-    sitedit!(robot.robot, sitfile)
-end
-function smartMove(robot::SmartRobot, side, moveUntil, genFunc)#двигается до выполнения функции moveUntil и исполняет genFunc каждый ход
-    while !moveUntil(robot, side)
-        move!(robot, side)
-        genFunc(robot, side)
-    end
 end
