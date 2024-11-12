@@ -4,17 +4,8 @@ robot = Robot(animate = true)
 sitedit!(robot, "untitled.sit")
 function task3(robot)
     moves = MoveToCorner(robot)
-    side = Ost
-    while true
-        putmarker!(robot)
-        moveUntilWall(robot, side, true)
-        side = rotate(side,2)
-        if !isborder(robot, Sud)
-            move!(robot, Sud)
-        else
-            break
-        end
-    end
+    putmarker!(robot)
+    snake!(()->isborder(robot, (Ost, Sud), strict = true), Paint(robot), (Ost, Sud))
     ReturnHome(robot, moves)
 end
 task3(robot)

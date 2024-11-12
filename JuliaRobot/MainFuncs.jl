@@ -8,6 +8,7 @@ function rotate(side, steps)#поворот стороны на steps шагов
         return HorizonSide(4-side) 
     end
 end
+Base.:+(side::HorizonSide, x::Integer) = rotate(side, x)
 function GetBorders(robot)#возвращает список всех стен, которых касается
     borders = []
     for side in [Ost, Sud, West, Nord]
@@ -16,6 +17,23 @@ function GetBorders(robot)#возвращает список всех стен, 
         end
     end
     return borders
+end
+
+function HorizonSideRobots.isborder(robot, sides::Tuple; strict = false)
+    for side in sides 
+        if strict && !isborder(robot, side)
+            return false
+        end
+        if !strict && isborder(robot, side)
+            return true
+        end
+    end
+    return strict
+end
+function HorizonSideRobots.move!(robot, sides::Tuple)
+    for side in sides 
+        move!(robot, side)
+    end
 end
 
 function moveSteps(robot, side, steps = 1, lay = false; breakFunc = ()->false)#двигается steps шагов, если lay = true, то оставляет след из маркеров
@@ -50,6 +68,23 @@ function moveUntil(stop_condition::Function, robot, side)#двигается д�
         n+=1
     end
     return n
+end
+
+struct Paint 
+    robot::Robot
+end
+function HorizonSideRobots.move!(robot::Paint, side)#обертка move!, обновляет координаты и выполняет функцию обновления
+    move!(robot.robot, side)
+    putmarker!(robot)
+end
+function HorizonSideRobots.putmarker!(robot::Paint)#обертка putmarker!, ставит маркер, только если allowPaint == true
+    putmarker!(robot.robot)
+end
+function HorizonSideRobots.isborder(robot::Paint, side)
+    return isborder(robot.robot, side)
+end
+function HorizonSideRobots.ismarker(robot::Paint)
+    return ismarker(robot.robot)
 end
 
 function MoveToCorner(robot, corner = (Nord, West))#передвигает робота в угол; возвращает список шагов чтобы вернуться домой
