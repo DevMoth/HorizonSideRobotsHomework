@@ -186,7 +186,6 @@ end
 
 function isOuterWall(robot, side)#проверяет внешняя ли это стена
     if !isborder(robot, side)
-        #println("no border")
         return false
     end
     for otherSide in [rotate(side, 1), rotate(side, 3)]
@@ -194,11 +193,9 @@ function isOuterWall(robot, side)#проверяет внешняя ли это 
         Corner = isborder(robot, side) && isborder(robot, otherSide)
         moveSteps(robot, rotate(otherSide, 2), stepsBack)
         if !Corner
-            #println("not corner")
             return false
         end
     end
-    #println("outer wall")
     return true
 end
 function snakeWithNav(robot, sides)# проходит все поле, но может обходить внутренние стены

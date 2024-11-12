@@ -1,13 +1,13 @@
 using HorizonSideRobots
-function recMoveUntilWall(robot, side, steps = 0)
+function recMoveUntilWall(robot, side, steps = 0)#двигается до стены через рекурсию, возвращает пройденные шаги
     if isborder(robot, side)
         return steps
     else
         move!(robot, side)
-        recMove(robot, side, steps+1)
+        recMoveUntilWall(robot, side, steps+1)
     end
 end
-function recMoveSteps(robot, side, steps)
+function recMoveSteps(robot, side, steps)#идет на steps шагов вперед через рекурсию, возвращает смог ли он пройти 
     if steps == 0
         return true
     elseif isborder(robot, side)
@@ -18,7 +18,7 @@ function recMoveSteps(robot, side, steps)
         recMoveSteps(robot, side, steps)
     end
 end
-function recWallNav(robot, side, sideStep = [rotate(side, 1), 0])
+function recWallNav(robot, side, sideStep = [rotate(side, 1), 0])#обход стены через рекурсию
     if !isborder(robot, side)
         move!(robot, side)
         recMoveSteps(robot, rotate(sideStep[1], 2), ceil(sideStep[2]/2))
@@ -30,14 +30,14 @@ function recWallNav(robot, side, sideStep = [rotate(side, 1), 0])
     end
 end
 
-mutable struct LabBot
+mutable struct LabBot# робот с координатами и списком всех пройденных клеток
     robot
     x::Int
     y::Int
     coords
 end
-LabBot(robot) = LabBot(robot, 0, 0, Set())
-function HorizonSideRobots.move!(robot::LabBot, side)
+LabBot(robot) = LabBot(robot, 0, 0, Set())#конструктор робота
+function HorizonSideRobots.move!(robot::LabBot, side)#перегрузка move! для LabBot
     push!(robot.coords, (robot.x, robot.y))
     if side == Nord
         robot.y -= 1
@@ -50,13 +50,13 @@ function HorizonSideRobots.move!(robot::LabBot, side)
     end
     move!(robot.robot, side)
 end
-function HorizonSideRobots.putmarker!(robot::LabBot)
+function HorizonSideRobots.putmarker!(robot::LabBot)#перегрузка putmarker! для LabBot
     putmarker!(robot.robot)
 end
-function HorizonSideRobots.isborder(robot::LabBot, side)
+function HorizonSideRobots.isborder(robot::LabBot, side)#перегрузка isborder для LabBot
     return isborder(robot.robot, side)
 end
-function getFreeSides(robot)
+function getFreeSides(robot)#возвращает все стороны без стен
     sides = []
     for side in [Nord, Ost, Sud, West]
         if !isborder(robot, side)
@@ -65,13 +65,15 @@ function getFreeSides(robot)
     end
     return sides
 end
-function walkLabyrinth(robot)
+function walkLabyrinth(robot; isGoodSide = (side)->!isborder(robot, side))#рекурсивная функция, обходит любой лабиринт
     if (robot.x, robot.y) in robot.coords
         return false
     end
-    for side in getFreeSides(robot)
-        move!(robot, side)
-        walkLabyrinth(robot)
-        move!(robot, rotate(side, 2))
+    for side in [Nord, Ost, Sud, West]
+        if isGoodSide(side)
+            move!(robot, side)
+            walkLabyrinth(robot)
+            move!(robot, rotate(side, 2))
+        end
     end
 end
