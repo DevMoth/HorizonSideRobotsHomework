@@ -6,7 +6,7 @@ function DrawSquare(robot, size)
     counter = 0
     for i in 1:size
         putmarker!(robot)
-        moveSteps(robot, West, moveSteps(robot, Ost, size-1, true))
+        moveSteps(robot, West, moveSteps(Paint(robot), Ost, size-1))
         if i < size && !isborder(robot, Nord)
             move!(robot, Nord)
             counter += 1

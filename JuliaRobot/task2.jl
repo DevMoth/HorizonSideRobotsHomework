@@ -1,11 +1,10 @@
 using HorizonSideRobots
 include("MainFuncs.jl")
+robot = Robot(animate = true)
 sitedit!(robot, "untitled.sit")
 function perimeter(robot)
     moves = MoveToCorner(robot)
-    for side in [Ost, Sud, West, Nord]
-        moveUntil(()->isborder(robot, side), Paint(robot), side)
-    end
+    perimeter(Paint(robot), Ost)
     ReturnHome(robot, moves)
 end
 perimeter(robot)

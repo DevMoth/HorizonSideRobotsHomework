@@ -15,4 +15,4 @@ function recChessB(robot, side)
         recChessA(robot, side)
     end
 end
-recChessA(robot, Sud)
+recChessA(robot, Nord)

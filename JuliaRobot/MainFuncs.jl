@@ -5,10 +5,11 @@ function rotate(side, steps)#поворот стороны на steps шагов
     if side >= 0
         return HorizonSide(side%4)
     else
-        return HorizonSide(4-side) 
+        return HorizonSide(4+side) 
     end
 end
 Base.:+(side::HorizonSide, x::Integer) = rotate(side, x)
+Base.:-(side::HorizonSide, x::Integer) = rotate(side, -1*x)
 function GetBorders(robot)#возвращает список всех стен, которых касается
     borders = []
     for side in [Ost, Sud, West, Nord]
@@ -36,30 +37,19 @@ function HorizonSideRobots.move!(robot, sides::Tuple)
     end
 end
 
-function moveSteps(robot, side, steps = 1, lay = false; breakFunc = ()->false)#двигается steps шагов, если lay = true, то оставляет след из маркеров
+function moveSteps(robot, side, steps = 1; breakFunc = ()->false)#двигается steps шагов, если lay = true, то оставляет след из маркеров
     counter = 0
     for _ in 1:steps 
         if isborder(robot, side) || breakFunc()
             return counter#останавливается, если коснулся стены и возвращает кол-во шагов до нее
         end
         move!(robot, side)
-        if lay
-            putmarker!(robot)
-        end
         counter += 1
     end
     return counter#возвращает кол-во пройденных шагов(здесь == steps)
 end
-function moveUntilWall(robot, side, lay = false)#двигается до стены, если lay = true, то оставляет след из маркеров
-    counter = 0
-    while !isborder(robot, side)
-        counter += 1
-        move!(robot, side)
-        if lay
-            putmarker!(robot)
-        end
-    end
-    return counter
+function moveUntilWall(robot, side)#двигается до стены, если lay = true, то оставляет след из маркеров
+    return moveUntil(()->isborder(robot, side), robot, side)
 end
 function moveUntil(stop_condition::Function, robot, side)#двигается до того, как stop_condition возвращает true
     n=0
@@ -71,13 +61,19 @@ function moveUntil(stop_condition::Function, robot, side)#двигается д�
 end
 
 struct Paint 
-    robot::Robot
+    robot
 end
-function HorizonSideRobots.move!(robot::Paint, side)#обертка move!, обновляет координаты и выполняет функцию обновления
+function HorizonSideRobots.move!(robot::Paint, side)
     move!(robot.robot, side)
     putmarker!(robot)
 end
-function HorizonSideRobots.putmarker!(robot::Paint)#обертка putmarker!, ставит маркер, только если allowPaint == true
+function HorizonSideRobots.move!(robot::Paint, sides::Tuple)
+    for side in sides 
+        move!(robot.robot, side)
+    end
+    putmarker!(robot)
+end
+function HorizonSideRobots.putmarker!(robot::Paint)
     putmarker!(robot.robot)
 end
 function HorizonSideRobots.isborder(robot::Paint, side)
@@ -115,6 +111,11 @@ function ReturnHome(robot, moves, corner = (Nord, West))#возвращаетс�
     ExecutePath(robot, moves, reversePath = true)
 end
 
+function perimeter(robot, side)#обходит внешнюю стену по периметру
+    for i in 0:3
+        moveUntil(()->isborder(robot, side-i), robot, side-i)
+    end
+end
 function snake!(stop_condition::Function, robot, sides::NTuple{2,HorizonSide})#двигается змейкой по заданным сторонам и останавливается, когда stop_condition возвращает true
     s=sides[1]
     while !stop_condition()
