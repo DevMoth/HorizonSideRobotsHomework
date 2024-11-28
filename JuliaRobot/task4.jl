@@ -9,4 +9,5 @@ function task4(robot)
         moveSteps(robot, (side+2, side+3), n)
     end
 end
-task4(robot)
+cross(robot, (Nord, Ost))
+#task4(robot)

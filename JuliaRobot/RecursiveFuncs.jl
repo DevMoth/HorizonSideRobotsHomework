@@ -1,4 +1,6 @@
 using HorizonSideRobots
+
+#основные рек. функции
 function recMoveUntilWall(robot, side, steps = 0)#двигается до стены через рекурсию, возвращает пройденные шаги
     if isborder(robot, side)
         return steps
@@ -30,6 +32,7 @@ function recWallNav(robot, side, sideStep = [rotate(side, 1), 0])#обход с�
     end
 end
 
+#лабиринт
 mutable struct LabBot# робот с координатами и списком всех пройденных клеток
     robot
     x::Int

@@ -1,5 +1,6 @@
 using HorizonSideRobots
 
+#основные функции со сторонами
 function rotate(side, steps)#поворот стороны на steps шагов против часовой(если отрицательное число, то по часовой)
     side = Int(side)+steps
     if side >= 0
@@ -8,9 +9,15 @@ function rotate(side, steps)#поворот стороны на steps шагов
         return HorizonSide(4+side) 
     end
 end
-Base.:+(side::HorizonSide, x::Integer) = rotate(side, x)
+Base.:+(side::HorizonSide, x::Integer) = rotate(side, x)#перегрузки операторов + и - для HorizonSide
 Base.:-(side::HorizonSide, x::Integer) = rotate(side, -1*x)
-function GetBorders(robot)#возвращает список всех стен, которых касается
+function Base.:+(sides::NTuple{2, HorizonSide}, x::Integer)
+    return (sides[1]+x, sides[2]+x)
+end
+function Base.:-(sides::NTuple{2, HorizonSide}, x::Integer)
+    return (sides[1]-x, sides[2]-x)
+end
+function GetBorders(robot)#возвращает список всех стен, которых касается робот
     borders = []
     for side in [Ost, Sud, West, Nord]
         if isborder(robot, side)
@@ -20,7 +27,8 @@ function GetBorders(robot)#возвращает список всех стен, 
     return borders
 end
 
-function HorizonSideRobots.isborder(robot, sides::Tuple; strict = false)
+#перегрузки для ходьбы по диагонали
+function HorizonSideRobots.isborder(robot, sides::Tuple; strict = false)#перегрузка isborder для массивов сторон(если strict = true, то должны быть все стороны, иначе хотя бы одна)
     for side in sides 
         if strict && !isborder(robot, side)
             return false
@@ -31,25 +39,23 @@ function HorizonSideRobots.isborder(robot, sides::Tuple; strict = false)
     end
     return strict
 end
-function HorizonSideRobots.move!(robot, sides::Tuple)
+function HorizonSideRobots.move!(robot, sides::Tuple)#перегрузка move! для массива сторон
     for side in sides 
         move!(robot, side)
     end
 end
 
-function moveSteps(robot, side, steps = 1; breakFunc = ()->false)#двигается steps шагов, если lay = true, то оставляет след из маркеров
+#основные функции ходьбы
+function moveSteps(robot, side, steps = 1; breakFunc = ()->false)#двигается steps шагов, до стены или до выполнения breakFunc()
     counter = 0
     for _ in 1:steps 
         if isborder(robot, side) || breakFunc()
-            return counter#останавливается, если коснулся стены и возвращает кол-во шагов до нее
+            return counter#не прошел steps шагов
         end
         move!(robot, side)
         counter += 1
     end
     return counter#возвращает кол-во пройденных шагов(здесь == steps)
-end
-function moveUntilWall(robot, side)#двигается до стены, если lay = true, то оставляет след из маркеров
-    return moveUntil(()->isborder(robot, side), robot, side)
 end
 function moveUntil(stop_condition::Function, robot, side)#двигается до того, как stop_condition возвращает true
     n=0
@@ -59,15 +65,19 @@ function moveUntil(stop_condition::Function, robot, side)#двигается д�
     end
     return n
 end
+function moveUntilWall(robot, side)#двигается до стены
+    return moveUntil(()->isborder(robot, side), robot, side)
+end
 
-struct Paint 
+#обертка робота для покраски
+struct Paint#обертка робота, ставящая маркеры при движении
     robot
 end
 function HorizonSideRobots.move!(robot::Paint, side)
     move!(robot.robot, side)
     putmarker!(robot)
 end
-function HorizonSideRobots.move!(robot::Paint, sides::Tuple)
+function HorizonSideRobots.move!(robot::Paint, sides::Tuple)#перегрузка move! для маляра и массива сторон. сначала проходит все стороны, а потом ставит маркер
     for side in sides 
         move!(robot.robot, side)
     end
@@ -83,6 +93,7 @@ function HorizonSideRobots.ismarker(robot::Paint)
     return ismarker(robot.robot)
 end
 
+#функции для передвижения в угол и домой
 function MoveToCorner(robot, corner = (Nord, West))#передвигает робота в угол; возвращает список шагов чтобы вернуться домой
     moves = []
     while true
@@ -102,7 +113,7 @@ function ExecutePath(robot, path; reversePath = false)#выполняет спи
         end
     else
         for cmd in reverse(path)
-            moveSteps(robot, rotate(cmd[1], 2), cmd[2])
+            moveSteps(robot, cmd[1]+2, cmd[2])
         end
     end
 end
@@ -111,6 +122,13 @@ function ReturnHome(robot, moves, corner = (Nord, West))#возвращаетс�
     ExecutePath(robot, moves, reversePath = true)
 end
 
+#основные функции узоров
+function cross(robot, side)#строит крест в 4 направления, начиная с данного
+    for i in 0:3
+        steps = moveUntil(()->isborder(robot, side+i), Paint(robot), side+i)
+        moveSteps(robot, side+i+2, steps)
+    end
+end
 function perimeter(robot, side)#обходит внешнюю стену по периметру
     for i in 0:3
         moveUntil(()->isborder(robot, side-i), robot, side-i)
@@ -123,7 +141,7 @@ function snake!(stop_condition::Function, robot, sides::NTuple{2,HorizonSide})#�
         if stop_condition()
             break
         end
-        s = rotate(s,2)
+        s = s+2
         move!(robot, sides[2])
     end
 end
@@ -131,12 +149,12 @@ function spiral!(stop_condition::Function, robot)#идет по спирали �
     steps = 1
     side = Nord
     while true
-        side = rotate(side,1)
+        side = side+1
         moveSteps(robot, side, steps, breakFunc = stop_condition)
         if stop_condition()
             break
         end
-        side = rotate(side,1)
+        side = side+1
         moveSteps(robot, side, steps, breakFunc = stop_condition)
         if stop_condition()
             break
@@ -145,6 +163,7 @@ function spiral!(stop_condition::Function, robot)#идет по спирали �
     end
 end
 
+#простые функции обхода стен
 function shuttle!(stop_condition::Function, robot, side)#шатается влево-вправо, пока stop_condition не вернет true
     metWall = false
     steps = 0
@@ -155,9 +174,9 @@ function shuttle!(stop_condition::Function, robot, side)#шатается вле
             return (side, steps)
         end
         if walked == steps
-            moveSteps(robot, rotate(side, 2), steps)
+            moveSteps(robot, side+2, steps)
         else
-            moveSteps(robot, rotate(side, 2), walked)
+            moveSteps(robot, side+2, walked)
             if metWall
                 return ()
             end
@@ -168,7 +187,7 @@ function shuttle!(stop_condition::Function, robot, side)#шатается вле
         end
         addStep = !addStep
         if !metWall
-            side = rotate(side, 2)
+            side = side+2
         end
     end
 end
@@ -178,7 +197,7 @@ function navAroundWall(robot, side)#идет вперед на 1 шаг, даж�
         return (side, 1)
     end
     path = []
-    pathAround = shuttle!(()->!isborder(robot, side), robot, rotate(side, 1))
+    pathAround = shuttle!(()->!isborder(robot, side), robot, side+1)
     if pathAround == ()
         return []
     end
@@ -220,6 +239,7 @@ function moveStepsWithPath(robot, side, steps = 1; moveType = ()->navAroundWall(
     return (true, path)
 end
 
+#узоры с обходом стен
 function isOuterWall(robot, side)#проверяет внешняя ли это стена
     if !isborder(robot, side)
         return false
