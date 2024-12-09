@@ -1,15 +1,15 @@
 using HorizonSideRobots
 
 #основные рек. функции
-function recMoveUntilWall(robot, side, steps = 0)#двигается до стены через рекурсию, возвращает пройденные шаги
+function rec_move_until_wall!(robot, side, steps = 0)#двигается до стены через рекурсию, возвращает пройденные шаги
     if isborder(robot, side)
         return steps
     else
         move!(robot, side)
-        recMoveUntilWall(robot, side, steps+1)
+        rec_move_until_wall!(robot, side, steps+1)
     end
 end
-function recMoveSteps(robot, side, steps)#идет на steps шагов вперед через рекурсию, возвращает смог ли он пройти 
+function rec_move_steps!(robot, side, steps)#идет на steps шагов вперед через рекурсию, возвращает смог ли он пройти 
     if steps == 0
         return true
     elseif isborder(robot, side)
@@ -17,18 +17,18 @@ function recMoveSteps(robot, side, steps)#идет на steps шагов впе�
     else
         move!(robot, side)
         steps -= 1
-        recMoveSteps(robot, side, steps)
+        rec_move_steps!(robot, side, steps)
     end
 end
-function recWallNav(robot, side, sideStep = [rotate(side, 1), 0])#обход стены через рекурсию
+function rec_move_around_wall!(robot, side, sideStep = [rotate(side, 1), 0])#обход стены через рекурсию
     if !isborder(robot, side)
         move!(robot, side)
-        recMoveSteps(robot, rotate(sideStep[1], 2), ceil(sideStep[2]/2))
+        rec_move_steps!(robot, rotate(sideStep[1], 2), ceil(sideStep[2]/2))
     else
         sideStep[1] = rotate(sideStep[1], 2)
         sideStep[2] += 1
-        recMoveSteps(robot, sideStep[1], sideStep[2])
-        recWallNav(robot, side, sideStep)
+        rec_move_steps!(robot, sideStep[1], sideStep[2])
+        rec_move_around_wall(robot, side, sideStep)
     end
 end
 
@@ -59,23 +59,14 @@ end
 function HorizonSideRobots.isborder(robot::LabBot, side)#перегрузка isborder для LabBot
     return isborder(robot.robot, side)
 end
-function getFreeSides(robot)#возвращает все стороны без стен
-    sides = []
-    for side in [Nord, Ost, Sud, West]
-        if !isborder(robot, side)
-            push!(sides, side)
-        end
-    end
-    return sides
-end
-function walkLabyrinth(robot; isGoodSide = (side)->!isborder(robot, side))#рекурсивная функция, обходит любой лабиринт
+function walk_labyrinth!(robot; isGoodSide = (side)->!isborder(robot, side))#рекурсивная функция, обходит любой лабиринт
     if (robot.x, robot.y) in robot.coords
         return false
     end
     for side in [Nord, Ost, Sud, West]
         if isGoodSide(side)
             move!(robot, side)
-            walkLabyrinth(robot)
+            walk_labyrinth(robot)
             move!(robot, rotate(side, 2))
         end
     end

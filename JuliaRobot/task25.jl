@@ -1,18 +1,18 @@
 using HorizonSideRobots
 include("MainFuncs.jl")#загружаем доп. функции
 robot = Robot(animate = true)
-sitedit!(robot, "untitled.sit")#загружаем уровень из .sit файла
-function recChessA(robot, side)
+sitedit!(robot, "empty.sit")#загружаем уровень из .sit файла
+function rec_chessA(robot, side)
     if !isborder(robot, side)
         move!(robot, side)
-        recChessB(robot, side)
+        rec_chessB(robot, side)
     end
 end
-function recChessB(robot, side)
+function rec_chessB(robot, side)
     putmarker!(robot)
     if !isborder(robot, side)
         move!(robot, side)
-        recChessA(robot, side)
+        rec_chessA(robot, side)
     end
 end
-recChessA(robot, Nord)
+rec_chessA(robot, Nord)

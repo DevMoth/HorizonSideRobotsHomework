@@ -3,44 +3,31 @@ include("MainFuncs.jl")
 robot = Robot(animate = true)
 sitedit!(robot, "task5.sit")
 
-function GetBorders(robot)
-    borders = []
-    for side in [Ost, Sud, West, Nord]
-        if isborder(robot, side)
-            push!(borders, side)
-        end
-    end
-    return borders
-end
-function DrawOuterPerimeter(robot)
-    while lastindex(GetBorders(robot)) != 0
-        side = GetBorders(robot)[1]
-        putmarker!(robot)
-        move!(robot, rotate(side,1))
-        if ismarker(robot)
-            break
-        end
-        if lastindex(GetBorders(robot)) == 0
-            putmarker!(robot)
-            move!(robot, side)
-        end
+function draw_outer_perimeter!(robot)#рисует периметр вокруг внутренней перегородки
+    for side in [Ost, Sud, West, Nord, Ost]
+        move_until!(()->!isborder(robot, side-1), Paint(robot), side)
+        move!(Paint(robot), side-1)
     end
 end
-function task5(robot)
-    moves = MoveToCorner(robot)
-    [moveUntilWall(robot, side, true) for side = [Ost, Sud, West, Nord]]
-    height = moveUntilWall(robot, Sud)
-    moveUntilWall(robot, Nord)
-    while !isborder(robot, Ost)
+function task5!(robot)
+    moves = move_to_corner!(robot)
+
+    perimeter!(Paint(robot), Ost)#внешний периметр
+
+    height = move_until!(()->isborder(robot, Sud), robot, Sud)#считаем высоту поля
+    move_until!(()->isborder(robot, Nord), robot, Nord)
+
+    while !isborder(robot, Ost)#сканируем поле
         move!(robot, Ost)
-        length = moveUntilWall(robot, Sud)
-        if length !=height
-            DrawOuterPerimeter(robot)
+        length = move_until!(()->isborder(robot, Sud), robot, Sud)#считаем высоту на текущей линии
+        if length != height#высота отличается, значет мы нашли внутреннею перегородку
+            draw_outer_perimeter!(robot)
             break
         end
-        moveUntilWall(robot, Nord)
+        move_until!(()->isborder(robot, Nord), robot, Nord)#возвращаемся наверх
     end
-    ReturnHome(robot, moves)
+
+    return_home!(robot, moves)
 end
 
-task5(robot)
+task5!(robot)

@@ -3,16 +3,18 @@ include("MainFuncs.jl")
 include("SmartRobot.jl")
 robot = Robot(animate = true)
 sitedit!(robot, "task6.sit")
-function chessMark(robot::SmartRobot)
+function chess_mark(robot::SmartRobot)
     if (robot.x+robot.y) % 2 == 0
         putmarker!(robot)
     end
 end
-function task9(robot)
+function task14!(robot)
     robot = SmartRobot(robot)
-    SetUpdateFunc(robot, ()->chessMark(robot))
-    moves = MoveToCorner(robot)
-    snakeWithNav(robot, (Ost, Sud))
-    ReturnHome(robot, moves)
+    moves = move_to_corner!(robot)
+
+    set_update_func!(robot, ()->chess_mark(robot))
+    snake_with_nav!(robot, (Ost, Sud))
+
+    return_home!(robot, moves)
 end
-task9(robot)
+task14!(robot)

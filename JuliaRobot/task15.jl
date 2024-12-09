@@ -8,11 +8,13 @@ function markOnDiagonal(robot)
         putmarker!(robot)
     end
 end
-function task15(robot)
+function task15!(robot)
     robot = SmartRobot(robot)
-    home = MoveToCorner(robot)
-    SetUpdateFunc(robot, ()->markOnDiagonal(robot))
-    snakeWithNav(robot, (Sud, Ost))
-    ReturnHome(robot, home)
+    home = move_to_corner!(robot)
+
+    set_update_func!(robot, ()->markOnDiagonal(robot))
+    snake_with_nav!(robot, (Ost, Sud))
+
+    return_home!(robot, home)
 end
-task15(robot)
+task15!(robot)

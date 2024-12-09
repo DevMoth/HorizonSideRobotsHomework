@@ -17,12 +17,12 @@ fibs = [0, 1]
 function fibRecCache(n)
     if lastindex(fibs) < n
         for _ in lastindex(fibs)+1:n 
-            append!(fibs, fibs[end]+fibs[end-1])
+            append!(fibs, fibRecCache(n-1)+fibRecCache(n-2))
         end
     end
     return fibs[n]
 end
-for i in 1:20
+for i in 1:60
     print(fib(i))
     print("\n")
 end

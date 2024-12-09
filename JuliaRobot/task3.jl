@@ -1,11 +1,13 @@
 using HorizonSideRobots
 include("MainFuncs.jl")
 robot = Robot(animate = true)
-sitedit!(robot, "untitled.sit")
-function task3(robot)
-    moves = MoveToCorner(robot)
+sitedit!(robot, "empty.sit")
+function task3!(robot)
+    moves = move_to_corner!(robot)
+
     putmarker!(robot)
     snake!(()->isborder(robot, (Ost, Sud), strict = true), Paint(robot), (Ost, Sud))
-    ReturnHome(robot, moves)
+    
+    return_home!(robot, moves)
 end
-task3(robot)
+task3!(robot)

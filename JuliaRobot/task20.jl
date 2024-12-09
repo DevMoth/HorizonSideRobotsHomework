@@ -1,9 +1,9 @@
 using HorizonSideRobots
 include("MainFuncs.jl")#загружаем доп. функции
 robot = Robot(animate = true)
-sitedit!(robot, "untitled.sit")#загружаем уровень из .sit файла
-function bounceMove(robot, side, steps = 0, bounced = false)
-    if isborder(robot, side) && !bounced
+sitedit!(robot, "empty.sit")#загружаем уровень из .sit файла
+function move_with_bounce!(robot, side, steps = 0, bounced = false)
+    if isborder(robot, side)#отскок от стены
         putmarker!(robot)
         bounced = true
         side = rotate(side, 2)
@@ -17,6 +17,6 @@ function bounceMove(robot, side, steps = 0, bounced = false)
     if steps == 0 && bounced
         return 0
     end
-    bounceMove(robot, side, steps, bounced)
+    move_with_bounce!(robot, side, steps, bounced)
 end
-bounceMove(robot, Nord)
+move_with_bounce!(robot, Nord)
