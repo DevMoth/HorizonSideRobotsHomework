@@ -10,7 +10,7 @@ upd30(robot) = (robot.x+robot.y)%2==0 && putmarker!(robot)
 upd31(robot) = abs(robot.x)==abs(robot.y) && putmarker!(robot)
 function task26(robot)
     robot = UpdateRobot(robot)
-    set_update_func!(robot, ()->upd30(robot))
+    set_update_func!(robot, ()->upd30(robot))#сюда вставляем нужную функцию обновления
     walk_labyrinth!(LabBot(robot))
 end
 task26(robot)

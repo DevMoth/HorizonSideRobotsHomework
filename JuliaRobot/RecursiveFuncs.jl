@@ -66,7 +66,7 @@ function walk_labyrinth!(robot; isGoodSide = (side)->!isborder(robot, side))#Ñ€Ð
     for side in [Nord, Ost, Sud, West]
         if isGoodSide(side)
             move!(robot, side)
-            walk_labyrinth(robot)
+            walk_labyrinth!(robot)
             move!(robot, rotate(side, 2))
         end
     end
