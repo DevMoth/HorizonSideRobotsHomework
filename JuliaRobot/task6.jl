@@ -1,6 +1,6 @@
 using HorizonSideRobots
 include("MainFuncs.jl")
-include("SmartRobot.jl")
+include("UpdateRobot.jl")
 robot = Robot(animate = true)
 sitedit!(robot, "task6.sit")
 function task6a!(robot)
@@ -17,7 +17,7 @@ function is_aligned_to_home(robot)#ставит маркер, если робо�
     end
 end
 function task6b!(robot)
-    robot = SmartRobot(robot)
+    robot = UpdateRobot(robot)
     moves = move_to_corner!(robot)
 
     set_update_func!(robot, ()->is_aligned_to_home(robot))

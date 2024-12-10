@@ -1,6 +1,6 @@
 using HorizonSideRobots
 include("MainFuncs.jl")#загружаем доп. функции
-include("SmartRobot.jl")
+include("UpdateRobot.jl")
 robot = Robot(animate = true)
 sitedit!(robot, "task6.sit")#загружаем уровень из .sit файла
 function markOnDiagonal(robot)
@@ -9,7 +9,7 @@ function markOnDiagonal(robot)
     end
 end
 function task15!(robot)
-    robot = SmartRobot(robot)
+    robot = UpdateRobot(robot)
     home = move_to_corner!(robot)
 
     set_update_func!(robot, ()->markOnDiagonal(robot))
